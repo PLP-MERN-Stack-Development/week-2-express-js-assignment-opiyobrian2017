@@ -3,11 +3,12 @@
 // Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware setup
 app.use(bodyParser.json());
@@ -52,9 +53,61 @@ app.get('/', (req, res) => {
 // PUT /api/products/:id - Update a product
 // DELETE /api/products/:id - Delete a product
 
-// Example route implementation for GET /api/products
-app.get('/api/products', (req, res) => {
-  res.json(products);
+// route implementation for POST /api/products
+app.post('/api/products', async (req, res) => {
+  try {
+      const products = new Product(req.body);
+      await products.save();
+      res.status(201).send(products);
+  } catch (error) {
+      res.status(400).send(error);
+  }
+});
+
+// Route implementation for GET /api/products
+app.get('/api/products', async (req, res)=> {
+  try{
+    const products = await Product.find();
+    res.send(products);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+})
+
+// Route implementation for GET /api/products/:id
+app.get('/api/products', async (req, res)=> {
+  try{
+    const products = await Product.findById(req.params.id);
+    if (!products) return res.status(404).send({ message: 'Product not found' });
+    res.send(products);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+})
+
+// Route implementation for PUT /api/products/:id
+app.put('/api/products', async (req, res) => {
+  try {
+    const task = await Product.findByIdAndUpdate(
+        req.params.id,
+        req.body, 
+        { new: true, runValidators: true });
+    if (!products) return res.status(404).send({ message: 'Product not found' });
+    res.send(products);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// Route implementation for DELETE /api/products/:id
+app.delete('/api/products', async (req, res) => {
+  try {
+    const products = await Product.findByIdAndDelete(req.params.id);
+    if (!products) return res.status(404).send({ message: 'Task not found' });
+    res.send({ message: 'Task deleted successfully' });
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 
 // TODO: Implement custom middleware for:
